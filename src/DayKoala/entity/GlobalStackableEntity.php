@@ -24,158 +24,163 @@ namespace DayKoala\entity;
 use pocketmine\entity\Location;
 use pocketmine\entity\EntitySizeInfo;
 use pocketmine\entity\Attribute;
-
+use pocketmine\item\enchantment\VanillaEnchantments;
+use pocketmine\item\Item;
 use pocketmine\nbt\tag\CompoundTag;
-
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
-
 use pocketmine\player\Player;
-
 use pocketmine\network\mcpe\protocol\types\entity\EntityIds;
 use pocketmine\network\mcpe\protocol\types\entity\Attribute as NetworkAttribute;
 use pocketmine\network\mcpe\protocol\types\entity\PropertySyncData;
-
 use pocketmine\network\mcpe\protocol\AddActorPacket;
-
 use DayKoala\SakuraSpawners;
 
-class GlobalStackableEntity extends StackableEntity{
+class GlobalStackableEntity extends StackableEntity {
 
-    public static function getNetworkTypeId() : string{
-        return EntityIds::AGENT;
-    }
+	public static function getNetworkTypeId() : string {
+		return EntityIds::AGENT;
+	}
 
-    protected string $entityId;
+	protected string $entityId;
 
-    protected string $customName = "GlobalStackableEntity";
+	protected string $customName = "GlobalStackableEntity";
 
-    protected int $xp = 0;
+	protected int $xp = 0;
 
-    protected array $drops = [];
+	protected array $drops = [];
 
-    public function __construct(Location $location, string $id, ?CompoundTag $nbt = null){
-        $this->entityId = $id;
-        parent::__construct($location, $nbt);
-    }
+	public function __construct(Location $location, string $id, ?CompoundTag $nbt = null) {
+		$this->entityId = $id;
+		parent::__construct($location, $nbt);
+	}
 
-    public function getName() : string{
-        return "GlobalStackableEntity";
-    }
+	public function getName() : string {
+		return "GlobalStackableEntity";
+	}
 
-    public function getEntityId() : string{
-        return $this->entityId;
-    }
+	public function getEntityId() : string {
+		return $this->entityId;
+	}
 
-    public function getCustomName() : string{
-        return $this->customName;
-    }
+	public function getCustomName() : string {
+		return $this->customName;
+	}
 
-    public function setCustomName(string $name) : void{
-        $this->customName = $name;
-    }
+	public function setCustomName(string $name) : void {
+		$this->customName = $name;
+	}
 
-    public function getXpDropAmount() : int{
-        return $this->xp;
-    }
+	public function getXpDropAmount() : int {
+		return $this->xp;
+	}
 
-    public function setXpDropAmount(int $xp) : void{
-        $this->xp = $xp;
-    }
+	public function setXpDropAmount(int $xp) : void {
+		$this->xp = $xp;
+	}
 
-    public function getDrops() : array{
-        return $this->drops;
-    }
+	public function getDrops() : array {
+		/*
+		 * Need register looting enchant
 
-    public function setDrops(array $drops) : void{
-        $this->drops = $drops;
-    }
+		$lastDamage = $this->lastDamageCause;
+		$currentLooting = 1;
 
-    protected function getInitialSizeInfo() : EntitySizeInfo{
-        $size = SakuraSpawners::getGlobalEntityData()->getEntitySize($this->entityId);
-        return new EntitySizeInfo((float) $size[0], (float) $size[1]);
-    }
+		if ($lastDamage instanceof EntityDamageByEntityEvent) {
+			$damager = $lastDamage->getDamager();
 
-    public function onUpdate(int $currentTick) : bool{
-        if($this->closed){
-            return false;
-        }
-        $this->setNameTag($this->toDisplay());
-        return parent::onUpdate($currentTick);
-    }
+			if ($damager instanceof Player) {
+				$currentItem = $damager->getInventory()->getItemInHand();
+			}
+		}
+		return array_map(fn(Item $item) => $item->setCount(mt_rand($item->getCount(), $item->getCount() * $currentLooting)), $this->drops);
+		*/
+		return $this->drops;
+	}
 
-    public function onDeath() : void{
-        if($this->currentStack > 1){
-            $this->currentStack--;
-            $this->setHealth($this->getMaxHealth());
-        }
-        parent::onDeath();
-    }
+	public function setDrops(array $drops) : void {
+		$this->drops = $drops;
+	}
 
-    public function attack(EntityDamageEvent $source) : void{
-        if($source->isCancelled()){
-            return;
-        }
-        if($source instanceof EntityDamageByEntityEvent){
-            $source->setKnockBack(0);
-        }
-        if($source->getFinalDamage() >= $this->getHealth() and $this->currentStack > 1){
-            $source->cancel();
-            $this->onDeath();
-        }
-        parent::attack($source);
-    }
+	protected function getInitialSizeInfo() : EntitySizeInfo {
+		$size = SakuraSpawners::getGlobalEntityData()->getEntitySize($this->entityId);
+		return new EntitySizeInfo((float) $size[0], (float) $size[1]);
+	}
 
-    public function kill() : void{
-        if($this->currentStack > 1){
-            for($i = 1; $i <= $this->currentStack; $i++) $this->onDeath();
-        }
-        parent::kill();
-    }
+	public function onUpdate(int $currentTick) : bool {
+		if ($this->closed) return false;
+		$this->setNameTag($this->toDisplay());
 
-    public function startDeathAnimation() : void{
-        if(!$this->isAlive()) parent::startDeathAnimation();
-    }
+		return parent::onUpdate($currentTick);
+	}
 
-    final protected function sendSpawnPacket(Player $player) : void{
-        $player->getNetworkSession()->sendDataPacket(AddActorPacket::create(
-            $this->getId(),
-            $this->getId(),
-            $this->entityId,
-            $this->location->asVector3(),
-            $this->getMotion(),
-            $this->location->pitch,
-            $this->location->yaw,
-            $this->location->yaw,
-            $this->location->yaw,
-            array_map(function(Attribute $attr) : NetworkAttribute{
-                return new NetworkAttribute($attr->getId(), $attr->getMinValue(), $attr->getMaxValue(), $attr->getValue(), $attr->getDefaultValue(), []);
-            }, $this->attributeMap->getAll()),
-            $this->getAllNetworkData(),
-            new PropertySyncData([], []),
-            []
-        ));
-    }
+	public function onDeath() : void {
+		if ($this->currentStack > 1) {
+			$this->currentStack--;
+			$this->setHealth($this->getMaxHealth());
+		}
+		parent::onDeath();
+	}
 
-    public function saveNBT() : CompoundTag{
-        $nbt = parent::saveNBT()
-            ->setString(GlobalEntitySelector::TAG_ENTITY_ID, $this->entityId);
-        return $nbt;
-    }
+	public function attack(EntityDamageEvent $source) : void {
+		if ($source->isCancelled()) return;
+		if ($source instanceof EntityDamageByEntityEvent) $source->setKnockBack(0);
 
-    public function toDisplay() : string{
-        $args = [
-            "{health}" => $this->getHealth(),
-            "{max-health}" => $this->getMaxHealth(),
-            "{stack}" => $this->currentStack,
-            "{max-stack}" => $this->maxStack,
-            "{name}" => $this->customName
-        ];
-        return str_replace(
-            array_keys($args), 
-            array_values($args), 
-            SakuraSpawners::getPropertiesData()->getString("SPAWNER.ENTITY.NAME.FORMAT")
-        );
-    }
+		if ($source->getFinalDamage() >= $this->getHealth() and $this->currentStack > 1) {
+			$source->cancel();
+			$this->onDeath();
+		}
+		parent::attack($source);
+	}
 
+	public function kill() : void {
+		if ($this->currentStack > 1) {
+			for ($i = 1; $i <= $this->currentStack; $i++) $this->onDeath();
+		}
+		parent::kill();
+	}
+
+	public function startDeathAnimation() : void {
+		if (!$this->isAlive()) parent::startDeathAnimation();
+	}
+
+	final protected function sendSpawnPacket(Player $player) : void {
+		$player->getNetworkSession()->sendDataPacket(AddActorPacket::create(
+			$this->getId(),
+			$this->getId(),
+			$this->entityId,
+			$this->location->asVector3(),
+			$this->getMotion(),
+			$this->location->pitch,
+			$this->location->yaw,
+			$this->location->yaw,
+			$this->location->yaw,
+			array_map(function (Attribute $attr) : NetworkAttribute {
+				return new NetworkAttribute($attr->getId(), $attr->getMinValue(), $attr->getMaxValue(), $attr->getValue(), $attr->getDefaultValue(), []);
+			}, $this->attributeMap->getAll()),
+			$this->getAllNetworkData(),
+			new PropertySyncData([], []),
+			[]
+		));
+	}
+
+	public function saveNBT() : CompoundTag {
+		return parent::saveNBT()
+			->setString(GlobalEntitySelector::TAG_ENTITY_ID, $this->entityId);
+	}
+
+	public function toDisplay() : string {
+		$args = [
+			"{health}" => $this->getHealth(),
+			"{max-health}" => $this->getMaxHealth(),
+			"{stack}" => $this->currentStack,
+			"{max-stack}" => $this->maxStack,
+			"{name}" => $this->customName
+		];
+		return str_replace(
+			array_keys($args),
+			array_values($args),
+			SakuraSpawners::getPropertiesData()->getString("SPAWNER.ENTITY.NAME.FORMAT")
+		);
+	}
 }

@@ -22,41 +22,35 @@
 namespace DayKoala\item;
 
 use pocketmine\utils\CloningRegistryTrait;
-
 use pocketmine\block\BlockIdentifier;
 use pocketmine\block\BlockTypeIds;
 use pocketmine\block\BlockTypeInfo;
 use pocketmine\block\BlockBreakInfo;
 use pocketmine\block\BlockToolType;
 use pocketmine\block\Block;
-
 use pocketmine\item\ToolTier;
 use pocketmine\item\Item;
-
 use DayKoala\block\SpawnerBlock;
-
 use DayKoala\block\tile\GlobalStackableSpawner;
 
-final class SpawnerItems{
+/**
+ *
+ * @method static SpawnerBlock MONSTER_SPAWNER()
+ * @method static Item SPAWNER()
+ *
+ */
+final class SpawnerItems {
+	use CloningRegistryTrait;
 
-    /**
-     * 
-     * @method static SpawnerBlock MONSTER_SPAWNER()
-     * @method static Item SPAWNER()
-     * 
-     */
+	protected static function setup() : void {
+		self::register('monster_spawner', $block = new SpawnerBlock(new BlockIdentifier(BlockTypeIds::MONSTER_SPAWNER, GlobalStackableSpawner::class), 'Sakura Monster Spawner', new BlockTypeInfo(new BlockBreakInfo(5.0, BlockToolType::PICKAXE, ToolTier::WOOD()->getHarvestLevel()))));
+		self::register('spawner', $block->asItem());
+	}
 
-    use CloningRegistryTrait;
+	protected static function register(string $name, Block|Item $result) : void {
+		self::_registryRegister($name, $result);
+	}
 
-    protected static function setup() : void{
-        self::register('monster_spawner', $block = new SpawnerBlock(new BlockIdentifier(BlockTypeIds::MONSTER_SPAWNER, GlobalStackableSpawner::class), 'Sakura Monster Spawner', new BlockTypeInfo(new BlockBreakInfo(5.0, BlockToolType::PICKAXE, ToolTier::WOOD()->getHarvestLevel()))));
-        self::register('spawner', $block->asItem());
-    }
-
-    protected static function register(string $name, Block|Item $result) : void{
-        self::_registryRegister($name, $result);
-    }
-
-    private function __construct(){}
-
+	private function __construct() {
+	}
 }

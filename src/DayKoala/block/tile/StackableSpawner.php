@@ -22,52 +22,50 @@
 namespace DayKoala\block\tile;
 
 use pocketmine\nbt\tag\CompoundTag;
-
 use DayKoala\utils\Stackable;
 
-abstract class StackableSpawner extends Spawner implements Stackable{
+abstract class StackableSpawner extends Spawner implements Stackable {
 
-    protected int $maxStack = 64;
-    protected int $currentStack = 1;
+	protected int $maxStack = 64;
+	protected int $currentStack = 1;
 
-    public function hasMaxStackSize() : bool{
-        return $this->maxStack <= $this->currentStack;
-    }
+	public function hasMaxStackSize() : bool {
+		return $this->maxStack <= $this->currentStack;
+	}
 
-    public function getMaxStackSize() : int{
-        return $this->maxStack;
-    }
+	public function getMaxStackSize() : int {
+		return $this->maxStack;
+	}
 
-    public function setMaxStackSize(int $size) : void{
-        $this->maxStack = $size < 1 ? 1 : $size;
-    }
-    
-    public function getStackSize() : int{
-        return $this->currentStack;
-    }
+	public function setMaxStackSize(int $size) : void {
+		$this->maxStack = max($size, 1);
+	}
 
-    public function setStackSize(int $size) : void{
-        $this->currentStack = $size > $this->maxStack ? $this->maxStack : $size;
-    }
+	public function getStackSize() : int {
+		return $this->currentStack;
+	}
 
-    public function addStackSize(int $size) : void{
-        $this->setStackSize($this->currentStack + $size);
-    }
+	public function setStackSize(int $size) : void {
+		$this->currentStack = min($size, $this->maxStack);
+	}
 
-    public function reduceStackSize(int $size) : void{
-        $this->setStackSize($this->currentStack - $size);
-    }
+	public function addStackSize(int $size) : void {
+		$this->setStackSize($this->currentStack + $size);
+	}
 
-    public function readSaveData(CompoundTag $nbt) : void{
-        $this->maxStack = $nbt->getInt("MaxStackSize", 64);
-        $this->currentStack = $nbt->getInt("CurrentStackSize", 1);
-        parent::readSaveData($nbt);
-    }
+	public function reduceStackSize(int $size) : void {
+		$this->setStackSize($this->currentStack - $size);
+	}
 
-    public function writeSaveData(CompoundTag $nbt) : void{
-        $nbt->setInt("MaxStackSize", $this->maxStack)
-            ->setInt("CurrentStackSize", $this->currentStack);
-        parent::writeSaveData($nbt);
-    }
+	public function readSaveData(CompoundTag $nbt) : void {
+		$this->maxStack = $nbt->getInt("MaxStackSize", 64);
+		$this->currentStack = $nbt->getInt("CurrentStackSize", 1);
+		parent::readSaveData($nbt);
+	}
 
+	public function writeSaveData(CompoundTag $nbt) : void {
+		$nbt->setInt("MaxStackSize", $this->maxStack)
+			->setInt("CurrentStackSize", $this->currentStack);
+		parent::writeSaveData($nbt);
+	}
 }

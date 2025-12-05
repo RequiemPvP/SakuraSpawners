@@ -21,20 +21,20 @@
 
 namespace DayKoala\utils;
 
-interface Stackable{
+interface Stackable {
 
-    public function hasMaxStackSize() : bool;
-    
-    public function getMaxStackSize() : int;
+	public function hasMaxStackSize() : bool;
 
-    public function setMaxStackSize(int $size) : void;
+	public function getMaxStackSize() : int;
 
-    public function getStackSize() : int;
+	public function setMaxStackSize(int $size) : void;
 
-    public function setStackSize(int $size) : void;
+	public function getStackSize() : int;
 
-    public function addStackSize(int $size) : void;
+	public function setStackSize(int $size) : void;
 
-    public function reduceStackSize(int $size) : void;
+	public function addStackSize(int $size) : void;
+
+	public function reduceStackSize(int $size) : void;
 
 }

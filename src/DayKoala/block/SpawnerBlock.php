@@ -23,64 +23,55 @@ namespace DayKoala\block;
 
 use pocketmine\block\MonsterSpawner;
 use pocketmine\block\Block;
-
 use pocketmine\world\BlockTransaction;
-
 use pocketmine\item\Item;
-
 use pocketmine\math\Vector3;
-
 use pocketmine\player\Player;
-
 use DayKoala\entity\GlobalEntitySelector;
-
 use DayKoala\block\tile\Spawner;
 
-class SpawnerBlock extends MonsterSpawner{
+class SpawnerBlock extends MonsterSpawner {
 
-    protected string $entityId = ":";
+	protected string $entityId = ":";
 
-    public function getMaxStackSize() : int{
-        return 64;
-    }
+	public function getMaxStackSize() : int {
+		return 64;
+	}
 
-    public function isAffectedBySilkTouch() : bool{
-        return true;
-    }
+	public function isAffectedBySilkTouch() : bool {
+		return true;
+	}
 
-    public function getEntityId() : string{
-        return $this->entityId;
-    }
+	public function getEntityId() : string {
+		return $this->entityId;
+	}
 
-    public function setEntityId(string $entityId) : self{
-        $this->entityId = $entityId;
-        return $this;
-    }
+	public function setEntityId(string $entityId) : self {
+		$this->entityId = $entityId;
+		return $this;
+	}
 
-    public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null) : bool{
-        $this->entityId = $item->getNamedTag()->getString(GlobalEntitySelector::TAG_ENTITY_ID, ":");
-        return parent::place($tx, $item, $blockReplace, $blockClicked, $face, $clickVector, $player);
-    }
+	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null) : bool {
+		$this->entityId = $item->getNamedTag()->getString(GlobalEntitySelector::TAG_ENTITY_ID, ":");
+		return parent::place($tx, $item, $blockReplace, $blockClicked, $face, $clickVector, $player);
+	}
 
-    public function readStateFromWorld() : self{
-        parent::readStateFromWorld();
+	public function readStateFromWorld() : self {
+		parent::readStateFromWorld();
 
-        $tile = $this->position->getWorld()->getTile($this->position);
+		$tile = $this->position->getWorld()->getTile($this->position);
 
-        if($tile instanceof Spawner){
-            if($tile->getEntityId() !== ":") $this->entityId = $tile->getEntityId();
-        }
-        return $this;
-    }
+		if ($tile instanceof Spawner) {
+			if ($tile->getEntityId() !== ":") $this->entityId = $tile->getEntityId();
+		}
+		return $this;
+	}
 
-    public function writeStateToWorld() : void{
-        parent::writeStateToWorld();
+	public function writeStateToWorld() : void {
+		parent::writeStateToWorld();
+		$tile = $this->position->getWorld()->getTile($this->position);
+		assert($tile instanceof Spawner);
 
-        $tile = $this->position->getWorld()->getTile($this->position);
-
-        assert($tile instanceof Spawner);
-
-        if($tile->getEntityId() === ":") $tile->setEntityId($this->entityId); 
-    }
-
+		if ($tile->getEntityId() === ":") $tile->setEntityId($this->entityId);
+	}
 }

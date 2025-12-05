@@ -23,8 +23,8 @@ namespace DayKoala\entity;
 
 use DayKoala\block\tile\Spawner;
 
-interface SpawnerHolder{
+interface SpawnerHolder {
 
-    public function getTile() : ?Spawner;
+	public function getTile() : ?Spawner;
 
 }

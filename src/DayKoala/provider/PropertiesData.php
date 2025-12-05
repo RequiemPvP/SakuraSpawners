@@ -22,48 +22,48 @@
 namespace DayKoala\provider;
 
 use pocketmine\utils\Config;
-
 use DayKoala\SakuraSpawners;
 
-final class PropertiesData{
+final class PropertiesData {
 
-    private Config $config;
+	private Config $config;
 
-    private array $data = [];
+	private array $data = [];
 
-    public function __construct(private SakuraSpawners $plugin){}
+	public function __construct(private SakuraSpawners $plugin) {
+	}
 
-    public function create() : void{
-        $this->config = new Config($this->plugin->getDataFolder() ."Properties.yml", Config::YAML);
-        $this->data = $this->config->getAll();
-    }
+	public function create() : void {
+		$this->config = new Config($this->plugin->getDataFolder() . "Properties.yml", Config::YAML);
+		$this->data = $this->config->getAll();
+	}
 
-    public function getString(string $key) : string{
-        return isset($this->data[$key]) ? (string) $this->data[$key] : "";
-    }
+	public function getString(string $key) : string {
+		return isset($this->data[$key]) ? (string) $this->data[$key] : "";
+	}
 
-    public function setString(string $key, string $value) : void{
-        $this->data[$key] = $value;
-    }
+	public function setString(string $key, string $value) : void {
+		$this->data[$key] = $value;
+	}
 
-    public function getInt(string $key) : int{
-        return isset($this->data[$key]) ? (int) $this->data[$key] : 0;
-    }
+	public function getInt(string $key) : int {
+		return isset($this->data[$key]) ? (int) $this->data[$key] : 0;
+	}
 
-    public function setInt(string $key, int $value) : void{
-        $this->data[$key] = $value;
-    }
+	public function setInt(string $key, int $value) : void {
+		$this->data[$key] = $value;
+	}
 
-    public function getFloat(string $key) : float{
-        return isset($this->data[$key]) ? (float) $this->data[$key] : 0;
-    }
+	public function getFloat(string $key) : float {
+		return isset($this->data[$key]) ? (float) $this->data[$key] : 0;
+	}
 
-    public function setFloat(string $key, float $value) : void{
-        $this->data[$key] = $value;
-    }
-    public function save() : void{
-        $this->config->setAll($this->data);
-        $this->config->save();
-    }
+	public function setFloat(string $key, float $value) : void {
+		$this->data[$key] = $value;
+	}
 
+	public function save() : void {
+		$this->config->setAll($this->data);
+		$this->config->save();
+	}
 }

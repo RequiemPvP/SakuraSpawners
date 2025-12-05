@@ -21,99 +21,80 @@
 
 namespace DayKoala\entity;
 
+use pocketmine\utils\SingletonTrait;
 use pocketmine\world\Position;
-
 use pocketmine\data\bedrock\LegacyEntityIdToStringIdMap;
-
 use pocketmine\entity\Location;
 use pocketmine\entity\Entity;
-
 use pocketmine\utils\Utils;
-
 use DaveRandom\CallbackValidator\CallbackType;
 use DaveRandom\CallbackValidator\ReturnType;
 use DaveRandom\CallbackValidator\ParameterType;
-
 use DayKoala\SakuraSpawners;
-
 use DayKoala\item\GlobalEntityDropsManager;
 
-final class GlobalEntitySelector{
+final class GlobalEntitySelector {
+	use SingletonTrait;
 
-    public const TAG_ENTITY_ID = "EntityIdentifier";
+	public const string TAG_ENTITY_ID = "EntityIdentifier";
 
-    private static $instance = null;
+	private array $entities = [];
+	private array $names = [];
 
-    public static function getInstance() : self{
-        return self::$instance ?? (self::$instance = new self);
-    }
+	private \Closure $globalCallback;
 
-    private array $entities = [];
-    private array $names = [];
-    
-    private \Closure $globalCallback;
+	private function __construct() {
+		$this->globalCallback = function (Position $position, string $entityId) : ?GlobalStackableEntity {
+			$entityMap = array_values(LegacyEntityIdToStringIdMap::getInstance()->getLegacyToStringMap());
 
-    private function __construct(){
-        $this->globalCallback = function(Position $position, String $entityId) : ?GlobalStackableEntity{
-            $entityMap = array_values(LegacyEntityIdToStringIdMap::getInstance()->getLegacyToStringMap());
-            if(!in_array($entityId, $entityMap)){
-                return null;
-            }
-            $data = SakuraSpawners::getGlobalEntityData();
-            $properties = SakuraSpawners::getPropertiesData();
+			if (!in_array($entityId, $entityMap)) return null;
+			$data = SakuraSpawners::getGlobalEntityData();
+			$properties = SakuraSpawners::getPropertiesData();
 
-            $entity = new GlobalStackableEntity(new Location($position->x + 0.5, $position->y + 1, $position->z + 0.5, $position->world, lcg_value() * 360, 0), $entityId);
+			$entity = new GlobalStackableEntity(new Location($position->x + 0.5, $position->y + 1, $position->z + 0.5, $position->world, lcg_value() * 360, 0), $entityId);
 
-            $entity->setCustomName($data->getEntityName($entityId));
-            $entity->setScale($data->getEntityScale($entityId));
-            $entity->setXpDropAmount($data->getEntityXPAmount($entityId));
+			$entity->setCustomName($data->getEntityName($entityId));
+			$entity->setScale($data->getEntityScale($entityId));
+			$entity->setXpDropAmount($data->getEntityXPAmount($entityId));
 
-            $entity->setMaxStackSize($properties->getInt("ENTITY.MAX.STACK.SIZE"));
-            $entity->setStackSize($properties->getInt("ENTITY.MIN.STACK.SIZE"));
+			$entity->setMaxStackSize($properties->getInt("ENTITY.MAX.STACK.SIZE"));
+			$entity->setStackSize($properties->getInt("ENTITY.MIN.STACK.SIZE"));
 
-            if(!GlobalEntityDropsManager::isEntityDropsWrited($entityId)){
-                GlobalEntityDropsManager::writeEntityDrops($entityId);
-            }
+			if (!GlobalEntityDropsManager::isEntityDropsWrote($entityId)) GlobalEntityDropsManager::writeEntityDrops($entityId);
+			$entity->setDrops(GlobalEntityDropsManager::readEntityDrops($entityId));
+			$entity->setNameTagAlwaysVisible();
+			return $entity;
+		};
+	}
 
-            $entity->setDrops(GlobalEntityDropsManager::readEntityDrops($entityId));
-            $entity->setNameTagAlwaysVisible();
-            return $entity;
-        };
-    }
+	public function exists(string $entityId) : bool {
+		return isset($this->entities[$entityId]);
+	}
 
-    public function exists(string $entityId) : bool{
-        return isset($this->entities[$entityId]);
-    }
+	public function getName(string $entityId) : string {
+		return $this->names[$entityId] ?? GlobalStackableEntity::class;
+	}
 
-    public function getName(string $entityId) : string{
-        return $this->names[$entityId] ?? GlobalStackableEntity::class;
-    }
+	public function get(string $entityId, Position $position) : ?Entity {
+		if (isset($this->entities[$entityId])) return $this->entities[$entityId]($position, $entityId);
+		return ($this->globalCallback)($position, $entityId);
+	}
 
-    public function get(string $entityId, Position $position) : ?Entity{
-        if(isset($this->entities[$entityId])){
-            return $this->entities[$entityId]($position, $entityId);
-        }
-        return ($this->globalCallback)($position, $entityId);
-    }
+	public function register(string $entityId, string $className, \Closure $callback, bool $override = false) : void {
+		if (isset($this->entities[$entityId]) and !$override) return;
+		Utils::testValidInstance($className, Entity::class);
+		Utils::validateCallableSignature(new CallbackType(
+			new ReturnType(Entity::class),
+			new ParameterType("position", Position::class),
+			new ParameterType("entityId", "string")
+		), $callback);
 
-    public function register(string $entityId, string $className, \Closure $callback, bool $override = false){
-        if(isset($this->entities[$entityId]) and !$override){
-            return;
-        }
-        Utils::testValidInstance($className, Entity::class);
-        Utils::validateCallableSignature(new CallbackType(
-            new ReturnType(Entity::class),
-            new ParameterType("position", Position::class),
-            new ParameterType("entityId", "string")
-        ), $callback);
+		$this->names[$entityId] = $className;
+		$this->entities[$entityId] = $callback;
+	}
 
-        $this->names[$entityId] = $className;
-        $this->entities[$entityId] = $callback;
-    }
-
-    public function unregister(string $entityId) : void{
-        if(isset($this->names[$entityId])) unset($this->names[$entityId]);
-        if(isset($this->entities[$entityId])) unset($this->entities[$entityId]);
-    }
-
+	public function unregister(string $entityId) : void {
+		if (isset($this->names[$entityId])) unset($this->names[$entityId]);
+		if (isset($this->entities[$entityId])) unset($this->entities[$entityId]);
+	}
 }

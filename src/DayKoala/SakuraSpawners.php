@@ -25,87 +25,75 @@ use pocketmine\plugin\PluginBase;
 
 use pocketmine\entity\EntityFactory;
 use pocketmine\entity\EntityDataHelper as Helper;
-
 use pocketmine\world\World;
-
 use pocketmine\nbt\tag\CompoundTag;
-
 use pocketmine\block\tile\TileFactory;
-
 use DayKoala\provider\PropertiesData;
 use DayKoala\provider\GlobalEntityData;
-
 use DayKoala\item\SpawnerItemsManager;
-
 use DayKoala\entity\GlobalStackableEntity;
 use DayKoala\entity\GlobalEntitySelector;
-
 use DayKoala\entity\object\SpawnerBlockHolder;
-
 use DayKoala\block\tile\GlobalStackableSpawner;
-
 use DayKoala\item\GlobalEntityDropsManager;
-
 use DayKoala\command\SakuraSpawnersCommand;
 
-final class SakuraSpawners extends PluginBase{
+final class SakuraSpawners extends PluginBase {
 
-    private static $propertiesData = null;
-    private static $globalEntityData = null;
+	private static ?PropertiesData $propertiesData = null;
+	private static ?GlobalEntityData $globalEntityData = null;
 
-    public static function getPropertiesData() : ?PropertiesData{
-        return self::$propertiesData;
-    }
+	public static function getPropertiesData() : ?PropertiesData {
+		return self::$propertiesData;
+	}
 
-    public static function getGlobalEntityData() : ?GlobalEntityData{
-        return self::$globalEntityData;
-    }
-    
-    protected function onEnable() : void{
-        foreach([
-            "Properties.yml",
-            "Entities.yml"
-        ] as $resource) $this->saveResource($resource);
+	public static function getGlobalEntityData() : ?GlobalEntityData {
+		return self::$globalEntityData;
+	}
 
-        self::$propertiesData = new PropertiesData($this);
-        self::$propertiesData->create();
+	protected function onLoad() : void {
+		$this->saveResource("Properties.yml");
+		$this->saveResource("Entities.yml");
+	}
 
-        self::$globalEntityData = new GlobalEntityData($this);
-        self::$globalEntityData->create();
+	protected function onEnable() : void {
+		self::$propertiesData = new PropertiesData($this);
+		self::$propertiesData->create();
 
-        SpawnerItemsManager::registerAll();
+		self::$globalEntityData = new GlobalEntityData($this);
+		self::$globalEntityData->create();
 
-        $factory = EntityFactory::getInstance();
-        $factory->register(GlobalStackableEntity::class, function(World $world, CompoundTag $nbt) : GlobalStackableEntity{
-            $data = SakuraSpawners::getGlobalEntityData();
-            $entity = new GlobalStackableEntity(Helper::parseLocation($nbt, $world), $entityId = $nbt->getString(GlobalEntitySelector::TAG_ENTITY_ID, ":"), $nbt);
+		SpawnerItemsManager::registerAll();
 
-            $entity->setCustomName($data->getEntityName($entityId));
-            $entity->setScale($data->getEntityScale($entityId));
-            $entity->setXpDropAmount($data->getEntityXPAmount($entityId));
+		$factory = EntityFactory::getInstance();
 
-            if(!GlobalEntityDropsManager::isEntityDropsWrited($entityId)){
-                GlobalEntityDropsManager::writeEntityDrops($entityId);
-            }
+		$factory->register(GlobalStackableEntity::class, function (World $world, CompoundTag $nbt) : GlobalStackableEntity {
+			$data = SakuraSpawners::getGlobalEntityData();
+			$entity = new GlobalStackableEntity(Helper::parseLocation($nbt, $world), $entityId = $nbt->getString(GlobalEntitySelector::TAG_ENTITY_ID, ":"), $nbt);
 
-            $entity->setDrops(GlobalEntityDropsManager::readEntityDrops($entityId));
-            $entity->setNameTagAlwaysVisible();
-            return $entity;
-        }, ["GlobalStackableEntity", "SakuraSpawners:GlobalStackableEntity"]);
-        $factory->register(SpawnerBlockHolder::class, function(World $world, CompoundTag $nbt) : SpawnerBlockHolder{
-            return new SpawnerBlockHolder(
-                Helper::parseLocation($nbt, $world), null, $nbt
-            );
-        }, ["SpawnerBlockHolder", "SakuraSpawners:SpawnerBlockHolder"]);
-        TileFactory::getInstance()->register(GlobalStackableSpawner::class, ["MobSpawner", "minecraft:mob_spawner"]);
+			$entity->setCustomName($data->getEntityName($entityId));
+			$entity->setScale($data->getEntityScale($entityId));
+			$entity->setXpDropAmount($data->getEntityXPAmount($entityId));
 
-        $this->getServer()->getCommandMap()->register("SakuraSpawners", new SakuraSpawnersCommand($this));
-        $this->getServer()->getPluginManager()->registerEvents(new SakuraSpawnersListener(), $this);
-    }
+			if (!GlobalEntityDropsManager::isEntityDropsWrote($entityId)) GlobalEntityDropsManager::writeEntityDrops($entityId);
+			$entity->setDrops(GlobalEntityDropsManager::readEntityDrops($entityId));
+			$entity->setNameTagAlwaysVisible();
+			return $entity;
+		}, ["GlobalStackableEntity", "SakuraSpawners:GlobalStackableEntity"]);
 
-    protected function onDisable() : void{
-        if(self::$propertiesData !== null) self::$propertiesData->save();
-        if(self::$globalEntityData !== null) self::$globalEntityData->save();
-    }
+		$factory->register(SpawnerBlockHolder::class, function (World $world, CompoundTag $nbt) : SpawnerBlockHolder {
+			return new SpawnerBlockHolder(
+				Helper::parseLocation($nbt, $world), null, $nbt
+			);
+		}, ["SpawnerBlockHolder", "SakuraSpawners:SpawnerBlockHolder"]);
+		TileFactory::getInstance()->register(GlobalStackableSpawner::class, ["MobSpawner", "minecraft:mob_spawner"]);
 
+		$this->getServer()->getCommandMap()->register("SakuraSpawners", new SakuraSpawnersCommand($this));
+		$this->getServer()->getPluginManager()->registerEvents(new SakuraSpawnersListener(), $this);
+	}
+
+	protected function onDisable() : void {
+		self::$propertiesData?->save();
+		self::$globalEntityData?->save();
+	}
 }

@@ -23,36 +23,35 @@ namespace DayKoala\item;
 
 use pocketmine\item\StringToItemParser;
 use pocketmine\item\Item;
-
 use pocketmine\data\bedrock\LegacyEntityIdToStringIdMap;
-
 use DayKoala\SakuraSpawners;
-
 use DayKoala\entity\GlobalEntitySelector;
 
-final class SpawnerItemsManager{
+final class SpawnerItemsManager {
 
-    public static function registerAll() : void{
-        $parser = StringToItemParser::getInstance();
-        $data = SakuraSpawners::getGlobalEntityData();
-        $format = SakuraSpawners::getPropertiesData()->getString("SPAWNER.ITEM.NAME.FORMAT");
-        foreach(LegacyEntityIdToStringIdMap::getInstance()->getLegacyToStringMap() as $legacy => $current){
-            $callback = function() use ($current, $data, $format) : Item{
-                $item = self::writeEntityId(SpawnerItems::SPAWNER(), $current);
-                return $item->setCustomName(str_replace("{name}", $data->getEntityName($current), $format));
-            };
-            $parser->override("52:". $legacy, $callback);
-            $parser->override("52:". $current, $callback);
-        }
-    }
+	public static function registerAll() : void {
+		$parser = StringToItemParser::getInstance();
+		$data = SakuraSpawners::getGlobalEntityData();
+		$format = SakuraSpawners::getPropertiesData()->getString("SPAWNER.ITEM.NAME.FORMAT");
 
-    public static function writeEntityId(Item $item, string $entityId) : Item{
-        $namedtag = $item->getNamedTag();
-        $namedtag->setString(GlobalEntitySelector::TAG_ENTITY_ID, $entityId);
-        $item->setNamedTag($namedtag);
-        return $item;
-    }
+		foreach (LegacyEntityIdToStringIdMap::getInstance()->getLegacyToStringMap() as $legacy => $current) {
+			$callback = function () use ($current, $data, $format) : Item {
+				$item = self::writeEntityId(SpawnerItems::SPAWNER(), $current);
+				return $item->setCustomName(str_replace("{name}", $data->getEntityName($current), $format));
+			};
 
-    private function __construct(){}
+			$parser->override("52:" . $legacy, $callback);
+			$parser->override("52:" . $current, $callback);
+		}
+	}
 
+	public static function writeEntityId(Item $item, string $entityId) : Item {
+		$namedtag = $item->getNamedTag();
+		$namedtag->setString(GlobalEntitySelector::TAG_ENTITY_ID, $entityId);
+		$item->setNamedTag($namedtag);
+		return $item;
+	}
+
+	private function __construct() {
+	}
 }

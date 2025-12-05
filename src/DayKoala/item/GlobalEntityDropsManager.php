@@ -23,35 +23,34 @@ namespace DayKoala\item;
 
 use pocketmine\item\StringToItemParser;
 use pocketmine\item\Item;
-
 use DayKoala\SakuraSpawners;
 
-final class GlobalEntityDropsManager{
+final class GlobalEntityDropsManager {
 
-    private static array $drops = [];
+	private static array $drops = [];
 
-    public static function isEntityDropsWrited(string $entityId) : bool{
-        return isset(self::$drops[$entityId]);
-    }
+	public static function isEntityDropsWrote(string $entityId) : bool {
+		return isset(self::$drops[$entityId]);
+	}
 
-    public static function readEntityDrops(string $entityId) : array{
-        return self::$drops[$entityId] ?? [];
-    }
+	public static function readEntityDrops(string $entityId) : array {
+		return self::$drops[$entityId] ?? [];
+	}
 
-    public static function writeEntityDrops(string $entityId) : void{
-        self::$drops[$entityId] = [];
+	public static function writeEntityDrops(string $entityId) : void {
+		$inputs = SakuraSpawners::getGlobalEntityData()->getEntityDrops($entityId);
+		self::$drops[$entityId] = [];
 
-        $inputs = SakuraSpawners::getGlobalEntityData()->getEntityDrops($entityId);
-        if(count($inputs) < 1){
-            return;
-        }
-        $parser = StringToItemParser::getInstance();
-        foreach($inputs as $input => $amount){
-            $item = $parser->parse($input);
-            if($item instanceof Item) self::$drops[$entityId][] = $item->setCount($amount);
-        }
-    }
+		if (count($inputs) < 1) return;
+		$parser = StringToItemParser::getInstance();
 
-    private function __construct(){}
+		foreach ($inputs as $input => $amount) {
+			$item = $parser->parse($input);
 
+			if ($item instanceof Item) self::$drops[$entityId][] = $item->setCount($amount);
+		}
+	}
+
+	private function __construct() {
+	}
 }
