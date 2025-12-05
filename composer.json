@@ -9,10 +9,16 @@
       "email": "espulefjuan12@gmail.com"
     }
   ],
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/RequiemPvP/PocketMine-MP.git"
+    }
+  ],
   "scripts": {
     "build-plugin": "@php -dphar.readonly=0 build-plugin.php"
   },
   "require-dev": {
-    "pocketmine/pocketmine-mp": ">=5.37.3"
+    "requiempvp/pocketmine-mp": "dev-stable"
   }
 }

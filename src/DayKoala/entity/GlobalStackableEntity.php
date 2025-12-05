@@ -80,9 +80,6 @@ class GlobalStackableEntity extends StackableEntity {
 	}
 
 	public function getDrops() : array {
-		/*
-		 * Need register looting enchant
-
 		$lastDamage = $this->lastDamageCause;
 		$currentLooting = 1;
 
@@ -91,11 +88,11 @@ class GlobalStackableEntity extends StackableEntity {
 
 			if ($damager instanceof Player) {
 				$currentItem = $damager->getInventory()->getItemInHand();
+
+				if ($currentItem->hasEnchantment(VanillaEnchantments::LOOTING())) $currentLooting = $currentItem->getEnchantment(VanillaEnchantments::LOOTING())->getLevel();
 			}
 		}
 		return array_map(fn(Item $item) => $item->setCount(mt_rand($item->getCount(), $item->getCount() * $currentLooting)), $this->drops);
-		*/
-		return $this->drops;
 	}
 
 	public function setDrops(array $drops) : void {
@@ -128,6 +125,7 @@ class GlobalStackableEntity extends StackableEntity {
 
 		if ($source->getFinalDamage() >= $this->getHealth() and $this->currentStack > 1) {
 			$source->cancel();
+
 			$this->onDeath();
 		}
 		parent::attack($source);
