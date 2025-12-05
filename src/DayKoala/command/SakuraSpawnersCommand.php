@@ -34,9 +34,9 @@ use DayKoala\item\SpawnerItemsManager;
 
 final class SakuraSpawnersCommand extends Command implements PluginOwned {
 
-	private const PREFIX = "§l§dSPAWNERS §r§d";
+	private const string PREFIX = "§l§dSPAWNERS §r§d";
 
-	public function __construct(private SakuraSpawners $plugin) {
+	public function __construct(private readonly SakuraSpawners $plugin) {
 		parent::__construct('spawner', 'main command of SakuraSpawners', '/spawner');
 		$this->setPermission('sakuraspawners.command.main');
 	}
@@ -45,7 +45,7 @@ final class SakuraSpawnersCommand extends Command implements PluginOwned {
 		return $this->plugin;
 	}
 
-	public function execute(CommandSender $sender, string $label, array $args) : bool {
+	public function execute(CommandSender $sender, string $commandLabel, array $args) : bool {
 		if ($sender instanceof Player) {
 			if (!$this->testPermission($sender)) return false;
 
