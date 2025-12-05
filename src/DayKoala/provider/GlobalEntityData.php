@@ -30,7 +30,7 @@ final class GlobalEntityData {
 
 	private array $data = [];
 
-	public function __construct(private SakuraSpawners $plugin) {
+	public function __construct(private readonly SakuraSpawners $plugin) {
 	}
 
 	public function create() : void {

@@ -32,6 +32,7 @@ use DaveRandom\CallbackValidator\ReturnType;
 use DaveRandom\CallbackValidator\ParameterType;
 use DayKoala\SakuraSpawners;
 use DayKoala\item\GlobalEntityDropsManager;
+use Random\Randomizer;
 
 final class GlobalEntitySelector {
 	use SingletonTrait;
@@ -51,7 +52,9 @@ final class GlobalEntitySelector {
 			$data = SakuraSpawners::getGlobalEntityData();
 			$properties = SakuraSpawners::getPropertiesData();
 
-			$entity = new GlobalStackableEntity(new Location($position->x + 0.5, $position->y + 1, $position->z + 0.5, $position->world, lcg_value() * 360, 0), $entityId);
+			$lgc = new Randomizer()
+				->nextFloat();
+			$entity = new GlobalStackableEntity(new Location($position->x + 0.5, $position->y + 1, $position->z + 0.5, $position->world, $lgc * 360, 0), $entityId);
 
 			$entity->setCustomName($data->getEntityName($entityId));
 			$entity->setScale($data->getEntityScale($entityId));

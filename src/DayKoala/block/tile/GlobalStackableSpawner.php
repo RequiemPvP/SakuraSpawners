@@ -30,11 +30,14 @@ use DayKoala\entity\object\SpawnerBlockHolder;
 use DayKoala\entity\GlobalEntitySelector;
 use DayKoala\entity\StackableEntity;
 use DayKoala\entity\GlobalStackableEntity;
+use Random\Randomizer;
 
 class GlobalStackableSpawner extends StackableSpawner {
 
 	protected function getOwningHolder() : SpawnerBlockHolder {
-		return new SpawnerBlockHolder(new Location($this->position->x + 0.5, $this->position->y + 1, $this->position->z + 0.5, $this->position->world, lcg_value() * 360, 0), $this);
+		$lgc = new Randomizer()
+			->nextFloat();
+		return new SpawnerBlockHolder(new Location($this->position->x + 0.5, $this->position->y + 1, $this->position->z + 0.5, $this->position->world, $lgc * 360, 0), $this);
 	}
 
 	public function canUpdate() : bool {
